@@ -85,7 +85,7 @@ class CheckMeOut extends StatelessWidget with ChangeNotifier {
                   if (context.watch<API>().currentOrder != null)
                     Padding(
                       padding: const EdgeInsets.all(30.0),
-                      child: buildForm(context, _formKey),
+                      
                     ),
                 ],
               ),
@@ -121,130 +121,6 @@ Container OrderTile(BuildContext context, int index, ProductItem orderItem) {
   );
 }
 
-FormBuilder buildForm(BuildContext context, dynamic _formKey) {
-  double currentOrderTotal = context.watch<API>().currentOrder!.orderTotal;
-  return FormBuilder(
-    key: _formKey,
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        MoneyField(paymentNumber: 1, orderTotal: currentOrderTotal),
-        MoneyField(paymentNumber: 2, orderTotal: currentOrderTotal),
-        MoneyField(paymentNumber: 3, orderTotal: currentOrderTotal),
-        MoneyField(paymentNumber: 4, orderTotal: currentOrderTotal),
-        MoneyField(paymentNumber: 5, orderTotal: currentOrderTotal),
-        Flex(
-          direction: Axis.horizontal,
-          children: [
-            Expanded(child: H3("Tips")),
-            Expanded(
-              child: FormBuilderTextField(
-                name: "tips",
-                keyboardType: TextInputType.number,
-                autofocus: false,
-                initialValue: "",
-                textAlign: TextAlign.right,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  hintText: "£",
-                  fillColor: Colors.white70,
-                ),
-                // onChanged: (value) {
-                //   print(value);
-                //   double? x = double.tryParse(value!);
-                //   if (x != null) {
-                //     context.read<API>().setTip(x);
-                //   }
-                // },
-              ),
-            ),
-          ],
-        ),
-        Flex(
-          direction: Axis.horizontal,
-          children: [
-            Expanded(child: H3("Delivery")),
-            Expanded(
-              child: FormBuilderTextField(
-                inputFormatters: [DecimalTextInputFormatter(decimalRange: 2)],
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                name: "delivery",
-                initialValue: "",
-                autofocus: false,
-                textAlign: TextAlign.right,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  hintText: "£",
-                  fillColor: Colors.white70,
-                ),
-              ),
-            ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            onPressed: () {
-              final bool? validationSuccess = _formKey.currentState?.validate();
-
-              if (validationSuccess!) {
-                // Save only when validation passed
-                _formKey.currentState?.save();
-
-                final formData = _formKey.currentState?.value;
-
-                OrderSubmission orderSubmission = OrderSubmission.fromJson(
-                  formData!,
-                  context.read<API>().currentOrder!,
-                );
-                if (orderSubmission.totalPayments() !=
-                    (double.parse(orderSubmission.subTotal!) +
-                        double.parse(orderSubmission.tips!) +
-                        double.parse(orderSubmission.delivery!))) {
-                  print('NO MATCH');
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      duration: Duration(seconds: 2),
-                      content: Container(
-                        height: 300,
-                        child: Center(
-                          child: Text('Payment does not match sub total',
-                              textScaleFactor: 3.5),
-                        ),
-                      ),
-                    ),
-                  );
-                  return;
-                } else {
-                  print('MATCH');
-                }
-                Navigator.pop(context);
-                context.read<API>().completeOrder(
-                      context,
-                      context.read<API>().currentOrder!,
-                      orderSubmission,
-                    );
-              } else {
-                // Get form data
-                final formData = _formKey.currentState?.value;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    duration: Duration(seconds: 2),
-                    content: Text('Validation failed! -> Data: $formData',
-                        textScaleFactor: 1.5),
-                  ),
-                );
-              }
-
-              FocusScope.of(context).unfocus();
-            },
-            child: Text('Submit'),
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
 class DecimalTextInputFormatter extends TextInputFormatter {
   DecimalTextInputFormatter({required this.decimalRange})
